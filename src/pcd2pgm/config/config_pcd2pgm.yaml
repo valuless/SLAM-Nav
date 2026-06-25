@@ -1,0 +1,24 @@
+pcd2pgm_node:
+  ros__parameters:
+    # Common Parameters
+    pcd_path: "/root/atom_ros2_ws/changqu.pcd"   # 改成完整文件路径
+    output_dir: "/root/atom_ros2_ws/src/map/"           # 输出目录
+    save_map_name: "changqu"                        # 地图名称
+    resolution: 0.05                               # 分辨率改小一点（更精细）
+    min_points_per_cell: 1
+    h_min: 0.10                                    # 最低高度（地面以上10cm）
+    h_max: 1.50                                    # 最高高度（1.5米以下）
+    downsample_leaf_size: 0.25                     # 下采样大小
+
+    # PMF parameter（地面滤波参数，保持默认）
+    max_window_size: 32
+    slope: 1.0
+    initial_distance: 0.3
+    max_distance: 2.5
+
+    # SOR parameter（统计滤波，去除噪点）
+    mean_k: 20
+    stddev_mul: 1.0
+
+    # Debug
+    save_all_cloud: false
