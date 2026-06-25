@@ -1,0 +1,38 @@
+# ROS 2 / colcon build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+
+# C/C++ build
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# System
+.DS_Store
+Thumbs.db
+
+# ROS bag files
+*.bag
+*.db3
+
+# Compiled message/service types (ROS 2)
+
+# Doxygen
+docs/html/
+docs/latex/
