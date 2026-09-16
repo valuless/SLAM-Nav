@@ -28,7 +28,7 @@ def generate_launch_description():
         # ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory('navigation'),'launch','rslidar_scan.launch.py')
+                os.path.join(get_package_share_directory('robot_navigation_bringup'),'launch','rslidar_scan.launch.py')
             ),
         ),
         IncludeLaunchDescription(

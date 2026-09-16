@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(navigation)
+project(robot_navigation_bringup)
 
 find_package(ament_cmake REQUIRED)
 

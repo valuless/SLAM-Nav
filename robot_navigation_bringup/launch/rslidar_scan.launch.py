@@ -9,12 +9,12 @@ import os
 def generate_launch_description():
     
         # 获取包路径
-    pkg_share = get_package_share_directory('navigation')
+    pkg_share = get_package_share_directory('robot_navigation_bringup')
     
     return LaunchDescription([
         # 时间修正节点
         Node(
-            package='navigation',
+            package='robot_navigation_bringup',
             executable='time_corrector.py',
             name='time_corrector',
             output='screen',
