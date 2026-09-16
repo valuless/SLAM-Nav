@@ -1,0 +1,40 @@
+amcl:
+  ros__parameters:
+    # 坐标系设置
+    odom_frame_id: "odom"
+    base_frame_id: "base_link"
+    global_frame_id: "map"
+    
+    # 粒子滤波器参数
+    min_particles: 500
+    max_particles: 2000
+    kld_err: 0.05
+    kld_z: 0.99
+    
+    # 运动模型噪声
+    odom_alpha1: 0.2
+    odom_alpha2: 0.2
+    odom_alpha3: 0.2
+    odom_alpha4: 0.2
+    
+    # 激光雷达参数
+    laser_model_type: "likelihood_field"
+    laser_max_beams: 60
+    laser_z_hit: 0.95
+    laser_z_rand: 0.05
+    laser_z_short: 0.05
+    laser_z_max: 0.05
+    laser_likelihood_max_dist: 2.0
+    
+    # 更新阈值
+    update_min_d: 0.2
+    update_min_a: 0.2
+    
+    # 初始位姿（可选，设置后不需要手动指定）
+    # initial_pose_x: 0.0
+    # initial_pose_y: 0.0
+    # initial_pose_a: 0.0
+    
+    # 保存/恢复粒子状态
+    save_pose_rate: 0.5
+    use_odom: true

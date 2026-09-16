@@ -1,0 +1,62 @@
+/**:
+    ros__parameters:
+        feature_extract_enable: false
+        point_filter_num: 4
+        max_iteration: 3
+        filter_size_surf: 0.8
+        filter_size_map: 0.8
+        cube_side_length: 1000.0
+        runtime_pos_log_enable: false
+        map_file_path: "./changqu.pcd"
+
+        common:
+            lid_topic:  "/velodyne_points"
+            imu_topic:  "/rslidar_imu_data"
+            time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
+            time_offset_lidar_to_imu: 0.0 # Time offset between lidar and IMU calibrated by other algorithms, e.g. LI-Init (can be found in README).
+                                        # This param will take effect no matter what time_sync_en is. So if the time offset is not known exactly, please set as 0.0
+
+        preprocess:
+            lidar_type: 2                # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR, 
+            scan_line: 16
+            scan_rate: 5                # only need to be set for velodyne, unit: Hz,
+            timestamp_unit: 0            # the unit of time/t field in the PointCloud2 rostopic: 0-second, 1-milisecond, 2-microsecond, 3-nanosecond.
+            blind: 2.0
+
+        mapping:
+            acc_cov: 0.1
+            gyr_cov: 0.1
+            b_acc_cov: 0.0001
+            b_gyr_cov: 0.0001
+            fov_degree:    360.0
+            det_range:     100.0
+            extrinsic_est_en:  false      # true: enable the online estimation of IMU-LiDAR extrinsic,
+            # extrinsic_T: [ 0.0042500002,0.0041800002,-0.0044600000]
+            # extrinsic_R: [ -0.02374243, -0.99970592, -0.00493714,
+            #         -0.99971362 , 0.02372723 , 0.00311446,
+            #         -0.0029964 ,  0.00500968, -0.99998296]
+
+            # extrinsic_T: [ 0.00431622, 0.00322145, -0.00514025]
+            # extrinsic_R: [ -0.02500843, -0.99964931, 0.00870918,
+            #             -0.98060238, 0.02283590, -0.19467291,
+            #             0.19440576, -0.01340870, -0.98082957]
+            extrinsic_R: [  0.98786807,  0.00222948,  0.15527955,
+                            0.00093937, -0.99996444,  0.00838124,
+                            0.15529272, -0.00813369, -0.98783503]
+
+            extrinsic_T: [ -0.00331252,  0.00436961, -0.00503621]
+
+
+
+        publish:
+            path_en:  true
+            map_en: false                 # true: publish Map cloud
+            scan_publish_en:  true       # false: close all the point cloud output
+            dense_publish_en: true       # false: low down the points number in a global-frame point clouds scan.
+            scan_bodyframe_pub_en: true  # true: output the point cloud scans in IMU-body-frame
+            publish_odom_tf: true
+
+        pcd_save:
+            pcd_save_en: false
+            interval: -1                 # how many LiDAR frames saved in each pcd file; 
+                                        # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
