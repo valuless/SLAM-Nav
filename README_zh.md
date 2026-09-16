@@ -1,6 +1,6 @@
 # Robot Navigation
 
-[English](README.md)
+[English](README_en.md)
 
 基于 ROS 2 的机器人自主导航工作空间，集成激光雷达驱动、激光惯性里程计、建图、Nav2、地图转换工具以及 Dobot Atom 机器人控制。
 
