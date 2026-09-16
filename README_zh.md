@@ -1,6 +1,6 @@
 # SLAM-Nav
 
-[English](README_en.md)
+[English](README.md)
 
 这是一个面向真实移动机器人平台的 ROS 2 自主导航工作区。它不是单一算法包，而是把激光雷达驱动、点云格式适配、LiDAR-IMU 建图定位、Nav2 路径规划与 Dobot Atom 机器人控制桥接组织在一起，用于完成从传感器数据采集到机器人执行运动指令的完整链路。
 
