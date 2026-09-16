@@ -1,6 +1,0 @@
-# Dobot Atom Bridge 参数配置
-atom_bridge_node:
-  ros__parameters:
-    rpc_ip: "192.168.8.234"
-    rpc_port: 51234
-    publish_rate: 10.0
