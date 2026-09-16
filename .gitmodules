@@ -1,0 +1,3 @@
+[submodule "dobot_atom_sdk"]
+	path = dobot_atom_sdk
+	url = https://github.com/Dobot-Arm/dobot_atom_sdk.git
