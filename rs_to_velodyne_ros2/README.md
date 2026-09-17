@@ -1,37 +1,75 @@
-rs_to_velodyne_ros2
+# rs_to_velodyne_ros2
 
-ROS2 速腾RoboSense激光雷达点云转 Velodyne 标准格式转换包
-功能简介
+ROS 2 node that converts `sensor_msgs/PointCloud2` into Velodyne-compatible
+`XYZI`, `XYZIR`, or `XYZIRT` layouts without a PCL conversion pass.
 
-将速腾16线 / Ruby 128线激光雷达原始点云，转换为标准 Velodyne XYZI / XYZIR / XYZIRT 格式，适配 LIO-SAM、Cartographer、Fast-LIO2 等仅支持 Velodyne 点云格式的 SLAM 算法。
-支持类型
-输入格式
+## Build
 
-    XYZI：速腾普通点云（x,y,z,intensity）
-    XYZIRT：速腾带环号+时间戳点云（x,y,z,intensity,ring,timestamp）
+```bash
+cd ~/Documents/robot-navigation
+colcon build --packages-select rs_to_velodyne_ros2
+source install/setup.bash
+```
 
-输出格式
+## Confirm The Ring Count
 
-    XYZI：基础坐标+强度
-    XYZIR：坐标+强度+激光环号
-    XYZIRT：坐标+强度+激光环号+点内相对时间戳（完全兼容Velodyne）
+Run the probe while `/rslidar_points` is being published:
 
-适配雷达
+```bash
+ros2 run rs_to_velodyne_ros2 ring_probe.py
+```
 
-    RoboSense 16线 激光雷达
-    RoboSense Ruby 128线 激光雷达
+The probe reads the field datatype, byte order, row stride, and point stride:
 
-环境依赖
+```text
+ring datatype=4 is_bigendian=False; min=0 max=95 unique=96 invalid=0
+```
 
-    ROS2 Humble / Iron / Rolling
-    PCL
-    rclcpp、sensor_msgs、pcl_conversions
+`unique` is the number of rings observed in that frame. Confirm that it is
+stable across several runs. RSAIRY may operate with 48, 96, or 192 channels.
+Use the confirmed value for both `ring_count` and FAST-LIO `scan_line`. Keep
+FAST-LIO `timestamp_unit: 0` because output time is seconds.
 
-编译安装
+## Run
 
-    cd ~/ros2_ws/src
-    git clone https://github.com/valuless/rs_to_velodyne_ros2.git
-    cd ..
-    colcon build --packages-select rs_to_velodyne_ros2
-    source install/setup.bash
-    ros2 launch rs_to_velodyne_ros2 convert.launch.py
+The launch file intentionally requires an explicit ring count:
+
+```bash
+ros2 launch rs_to_velodyne_ros2 convert.launch.py ring_count:=96
+```
+
+| Parameter | Values | Default |
+|---|---|---|
+| `output_type` | `XYZI`, `XYZIR`, `XYZIRT` | `XYZIRT` |
+| `output_frame_id` | empty keeps input frame | empty |
+| `ring_source` | `field`, `organized_rows`, `organized_cols` | `field` |
+| `ring_count` | physical channel count | required by launch |
+| `ring_map` | empty identity or full permutation | empty |
+| `time_source` | `none`, `timestamp`, `time` | `timestamp` |
+| `time_mode` | `absolute`, `relative` | `absolute` |
+| `time_unit` | `second`, `millisecond`, `microsecond`, `nanosecond` | `second` |
+| `time_order_policy` | `validate`, `ignore` | `validate` |
+
+`XYZIRT` requires a non-`none` time source. `ignore` disables ordering
+validation; it does not reorder points. RoboSense absolute timestamps require
+`ts_first_point: true` in the driver configuration.
+
+## Validation
+
+```bash
+ros2 topic hz /velodyne_points
+ros2 topic delay /velodyne_points
+ros2 topic echo /velodyne_points --once
+```
+
+For `XYZIRT` with the Velodyne layout, `point_step` is 32 and fields are
+`x`, `y`, `z`, `intensity`, `ring`, and `time`.
+
+## Deployment Order
+
+1. Run `ring_probe.py` and confirm the physical ring count.
+2. Build this package with `colcon build --packages-select rs_to_velodyne_ros2`.
+3. Set converter `ring_count` and FAST-LIO `scan_line` to that same value.
+4. Keep FAST-LIO `timestamp_unit: 0`, then start FAST-LIO.
+5. Run rosbag and motion tests; verify that deskewing is correct.
+6. On shutdown, verify `pool release_to_delete=0` in the converter log.

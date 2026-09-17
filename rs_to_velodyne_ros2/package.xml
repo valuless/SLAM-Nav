@@ -2,18 +2,17 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rs_to_velodyne_ros2</name>
-  <version>1.0.0</version>
-  <description>Convert RoboSense LiDAR point cloud to Velodyne format for ROS2</description>
-
-  <maintainer email="valuless@163.com">Your Name</maintainer>
+  <version>1.9.9</version>
+  <description>Convert RoboSense PointCloud2 to Velodyne-compatible format (strategy-based).</description>
+  <maintainer email="valuless@163.com">valuless</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
-  <depend>pcl_conversions</depend>
-  <depend>libpcl-all-dev</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>rclpy</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
