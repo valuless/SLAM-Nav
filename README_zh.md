@@ -69,23 +69,28 @@ dobot_atom_bridge 将 /cmd_vel 转换为机器人控制接口调用
 
 其中 `robot_navigation_bringup` 包承担系统级编排职责，它不是算法本身，而是把雷达驱动、格式转换、FAST-LIO、点云转激光、Nav2 和 Dobot 桥接节点按顺序拉起来。
 
-## 主要目录
+## 推荐工作空间结构
 
 ```text
-src/
-├── dobot_atom/              # Dobot Atom ROS 消息定义
-├── dobot_atom_bridge/       # Dobot Atom 与 ROS 2 的控制桥接
-├── dobot_atom_sdk/          # Dobot Atom 官方 SDK Git submodule
-├── FAST_LIO/                # LiDAR-IMU 里程计与点云建图
-├── ground_reset/            # 地面标定与辅助脚本
-├── Livox-SDK2/              # Livox 官方 SDK
-├── livox_ros_driver2/       # Livox ROS 驱动
-├── navigation2/             # Nav2 导航框架源码及相关功能包
-├── pcd2pgm/                 # PCD 点云到 PGM/YAML 占据栅格地图转换
-├── robot_navigation_bringup/ # 本项目的系统启动与导航配置入口
-├── rs_to_velodyne_ros2/     # RoboSense 点云转 Velodyne 风格点云
-├── rslidar_msg/             # RoboSense 雷达消息定义
-└── rslidar_sdk/             # RoboSense 雷达驱动
+SLAM-Nav_ws/
+├── src/                              # 当前 Git 仓库
+│   ├── .git/
+│   ├── dobot_atom/                   # Dobot Atom ROS 消息定义
+│   ├── dobot_atom_bridge/            # Dobot Atom 与 ROS 2 的控制桥接
+│   ├── dobot_atom_sdk/               # Dobot Atom 官方 SDK submodule
+│   ├── FAST_LIO/                     # LiDAR-IMU 里程计与点云建图
+│   ├── ground_reset/                 # 地面标定与辅助脚本
+│   ├── Livox-SDK2/                   # Livox 官方 SDK
+│   ├── livox_ros_driver2/            # Livox ROS 2 驱动
+│   ├── navigation2/                  # Nav2 导航框架源码及相关功能包
+│   ├── pcd2pgm/                      # PCD 到 PGM/YAML 地图转换
+│   ├── robot_navigation_bringup/     # 系统启动与导航配置入口
+│   ├── rs_to_velodyne_ros2/          # RoboSense 点云格式适配
+│   ├── rslidar_msg/                  # RoboSense 消息定义
+│   └── rslidar_sdk/                  # RoboSense 雷达驱动
+├── build/                            # colcon 构建产物，不纳入 Git
+├── install/                          # colcon 安装目录，不纳入 Git
+└── log/                              # colcon 日志，不纳入 Git
 ```
 
 ## 模块说明
@@ -100,7 +105,6 @@ src/
 - `launch/rslidar_scan.launch.py`：将 FAST-LIO 输出的配准点云转换为 `/scan`，供 Nav2 局部代价地图使用。
 - `config/nav2_params.yaml`：Nav2 参数配置，包括控制器、代价地图、行为树、规划器等。
 - `config/amcl_params.yaml`：AMCL 相关定位参数。
-- `scripts/time_corrector.py`：用于处理 TF 或点云链路中的时间同步问题。
 
 从职责上看，`robot_navigation_bringup` 是“系统装配层”。如果需要调整话题名、地图路径、机器人速度限制、局部代价地图大小、避障距离或控制器参数，通常优先从这个包开始看。
 
@@ -182,7 +186,7 @@ Nav2 /cmd_vel  -->  dobot_atom_bridge  -->  Dobot Atom RPC/DDS
 | --- | --- | --- |
 | 原始点云 | `/rslidar_points` | RoboSense 驱动输出 |
 | 适配点云 | `/velodyne_points` | 转换后的 Velodyne 风格点云 |
-| 配准点云 | `/cloud_registered_fixed` | FAST-LIO 或时间修正后用于生成扫描的数据 |
+| 配准点云 | `/cloud_registered` | FAST-LIO 输出，用于生成 `/scan` |
 | 激光扫描 | `/scan` | Nav2 局部代价地图输入 |
 | 速度指令 | `/cmd_vel` | Nav2 输出，桥接到底盘 |
 | 状态反馈 | `/connection_state`、`/fsm_state` | Dobot 桥接状态 |
@@ -239,13 +243,22 @@ sudo apt install \
 
 ## 克隆、构建与启动
 
-克隆仓库时需要同时初始化 Dobot Atom SDK submodule：
+创建 ROS 2 工作空间，并把本仓库直接克隆为工作空间的 `src/` 目录：
 
 ```bash
-git clone --recurse-submodules git@github.com:valuless/SLAM-Nav.git
+mkdir -p ~/SLAM-Nav_ws
+cd ~/SLAM-Nav_ws
+git clone --recurse-submodules \
+  git@github.com:valuless/SLAM-Nav.git src
 ```
 
-建议将仓库克隆到 ROS 2 工作空间的 `src/` 目录，然后回到工作空间根目录执行构建。
+如果普通克隆时没有初始化 submodule：
+
+```bash
+cd ~/SLAM-Nav_ws/src
+git submodule update --init --recursive
+cd ~/SLAM-Nav_ws
+```
 
 在工作区根目录构建：
 
@@ -303,13 +316,13 @@ map
         └── lidar frame
 ```
 
-如果 TF 时间戳不一致，可以关注 `robot_navigation_bringup/scripts/time_corrector.py` 和 `rslidar_scan.launch.py` 中的 remapping。
+如果 TF 时间戳不一致，应检查 FAST-LIO 点云、里程计和 `odom -> base_link` 是否使用同一个雷达测量时间。
 
 ### 3. `/scan` 是否合理
 
 Nav2 当前通过 `pointcloud_to_laserscan` 使用二维扫描数据构建局部代价地图。若机器人不避障，应检查：
 
-- `/cloud_registered_fixed` 是否存在。
+- `/cloud_registered` 是否存在。
 - `/scan` 是否存在。
 - `min_height` 和 `max_height` 是否截取到了正确高度范围。
 - `target_frame` 是否能转换到 `base_link`。

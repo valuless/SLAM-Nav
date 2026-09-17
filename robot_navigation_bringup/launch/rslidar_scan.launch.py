@@ -1,33 +1,16 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_directory
-import os
 
 def generate_launch_description():
-    
-        # 获取包路径
-    pkg_share = get_package_share_directory('robot_navigation_bringup')
-    
     return LaunchDescription([
-        # 时间修正节点
-        Node(
-            package='robot_navigation_bringup',
-            executable='time_corrector.py',
-            name='time_corrector',
-            output='screen',
-        ),
-        # 节点1：点云转激光
+        # 将 FAST-LIO 配准点云转换为 Nav2 使用的二维激光扫描
         Node(
             package='pointcloud_to_laserscan',
             executable='pointcloud_to_laserscan_node',
             name='pointcloud_to_laserscan',
             remappings=[
-                ('cloud_in', '/cloud_registered_fixed'),
+                ('cloud_in', '/cloud_registered'),
                 ('scan', '/scan'),
-                ('/tf', '/tf_fixed'),  # 使用时间修正后的TF，与cloud时间戳一致
             ],
             parameters=[{
                 'target_frame': 'base_link',
