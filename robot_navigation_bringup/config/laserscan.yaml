@@ -1,0 +1,14 @@
+# 将 FAST-LIO 配准点云投影为 Nav2 使用的二维 /scan。
+pointcloud_to_laserscan:               # 点云投影节点名，必须与 system.launch.py 一致。
+  ros__parameters:                    # pointcloud_to_laserscan 的 ROS 2 参数入口。
+    target_frame: base_link           # 投影前将输入点云通过 TF 变换到此坐标系。
+    transform_tolerance: 0.5          # 等待/容忍 TF 的最长时间，单位 s。
+    min_height: -1.4                  # 在 target_frame 中保留点的最低 z，单位 m。
+    max_height: -0.2                  # 在 target_frame 中保留点的最高 z，单位 m。
+    angle_min: -3.1415926             # 输出扫描起始角，约 -180 degree，单位 rad。
+    angle_max: 3.1415926              # 输出扫描结束角，约 180 degree，单位 rad。
+    angle_increment: 0.0174533        # 相邻扫描束角间隔，约 1 degree，单位 rad。
+    range_min: 0.2                    # 小于该距离的点不进入扫描，单位 m。
+    range_max: 20.0                   # 大于该距离的点不进入扫描，单位 m。
+    scan_time: 0.1                    # 相邻 LaserScan 消息的期望周期，单位 s。
+    use_inf: true                     # true 将无回波束填为 inf；false 填 range_max+epsilon。

@@ -102,9 +102,8 @@ SLAM-Nav_ws/
 它包含：
 
 - `launch/system.launch.py`：系统级启动入口，组合雷达驱动、点云转换、FAST-LIO、激光扫描生成、Dobot 桥接和 Nav2。
-- `launch/rslidar_scan.launch.py`：将 FAST-LIO 输出的配准点云转换为 `/scan`，供 Nav2 局部代价地图使用。
-- `config/nav2_params.yaml`：Nav2 参数配置，包括控制器、代价地图、行为树、规划器等。
-- `config/amcl_params.yaml`：AMCL 相关定位参数。
+- `config/laserscan.yaml`：配置从 FAST-LIO 配准点云生成 `/scan` 的投影参数。
+- `config/nav2_params.yaml`：Nav2 参数配置，包括控制器、代价地图、行为树、规划器和 AMCL 定位参数。
 
 从职责上看，`robot_navigation_bringup` 是“系统装配层”。如果需要调整话题名、地图路径、机器人速度限制、局部代价地图大小、避障距离或控制器参数，通常优先从这个包开始看。
 
@@ -205,7 +204,8 @@ Nav2 /cmd_vel  -->  dobot_atom_bridge  -->  Dobot Atom RPC/DDS
 如果是第一次接触这个工作区，建议按下面顺序阅读和调试：
 
 1. 先看 `src/robot_navigation_bringup/launch/system.launch.py`，理解系统启动了哪些模块。
-2. 再看 `src/robot_navigation_bringup/launch/rslidar_scan.launch.py`，理解 `/scan` 如何从点云生成。
+2. 再看 `src/robot_navigation_bringup/launch/system.launch.py` 和
+   `config/laserscan.yaml`，理解 `/scan` 如何从点云生成。
 3. 查看 `src/robot_navigation_bringup/config/nav2_params.yaml`，理解 Nav2 控制器、代价地图和行为树配置。
 4. 查看 `src/dobot_atom_bridge/launch/atom_bridge.launch.py`，理解 `/cmd_vel` 如何进入机器人平台。
 5. 根据实际雷达型号，分别检查 `rslidar_sdk` 或 `livox_ros_driver2` 的配置。
@@ -331,7 +331,8 @@ Nav2 当前通过 `pointcloud_to_laserscan` 使用二维扫描数据构建局部
 
 如果 Nav2 已启动但不能规划，通常需要检查地图文件路径、全局代价地图、局部代价地图、初始位姿和目标点。
 
-当前 `system.launch.py` 中地图路径默认值带有现场部署特征，迁移机器或工作区后需要通过 launch 参数覆盖。
+定位模式不会硬编码地图路径，启动时必须通过
+`map:=/地图文件的绝对路径.yaml` 显式传入。
 
 ### 5. `/cmd_vel` 是否进入机器人
 
@@ -344,18 +345,18 @@ Nav2 只负责输出速度指令，真实机器人是否运动取决于 `dobot_a
 | 需求 | 优先查看 |
 | --- | --- |
 | 修改系统启动顺序 | `robot_navigation_bringup/launch/system.launch.py` |
-| 修改点云转 `/scan` 的高度范围 | `robot_navigation_bringup/launch/rslidar_scan.launch.py` |
+| 修改点云转 `/scan` 的高度范围 | `robot_navigation_bringup/config/laserscan.yaml` |
 | 修改 Nav2 控制器和速度限制 | `robot_navigation_bringup/config/nav2_params.yaml` |
 | 修改地图路径 | `robot_navigation_bringup/launch/system.launch.py` |
 | 修改 Dobot Atom IP 和端口 | `dobot_atom_bridge/launch/atom_bridge.launch.py` |
-| 修改 RoboSense 点云格式 | `rs_to_velodyne_ros2/launch/convert.launch.py` |
+| 修改 RoboSense 点云格式 | `robot_navigation_bringup/config/lidar_pipeline.yaml` |
 | 生成二维地图 | `pcd2pgm/config/config_pcd2pgm.yaml` |
 
 ## 开发注意事项
 
 - 不同雷达链路不要同时假设使用同一个点云话题，接入新雷达时应先统一话题名和 frame id。
 - Nav2 对 TF、时间戳和 frame id 非常敏感，修改点云或里程计链路后要同步检查配置。
-- `system.launch.py` 中部分默认值带有现场部署特征，迁移环境时应优先通过 launch 参数覆盖。
+- Dobot RPC 地址等现场参数仍具有部署特征，迁移环境时必须按机器人网络修改。
 - 各第三方模块保留各自许可证和原始结构，修改时尽量把集成逻辑放在本项目自有包中。
 
 ## License

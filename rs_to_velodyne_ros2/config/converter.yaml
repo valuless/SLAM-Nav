@@ -1,0 +1,17 @@
+# 转换器独立启动时使用的通用默认参数。
+# 整机启动由 robot_navigation_bringup/config/lidar_pipeline.yaml 接管。
+rs_converter:                         # 点云转换节点名，必须与 launch 中的节点名一致。
+  ros__parameters:                    # rs_converter 的 ROS 2 参数入口。
+    input_topic: /rslidar_points      # RoboSense 驱动发布的原始 PointCloud2 话题。
+    output_topic: /velodyne_points    # 转换后 Velodyne 兼容 PointCloud2 话题。
+    output_type: XYZIRT               # 输出字段：坐标、强度、ring 和逐点时间。
+    output_frame_id: ""               # 仅改 frame_id；空值沿用输入且不执行 TF 变换。
+    ring_source: field                # ring 来源；field 表示读取输入点云 ring 字段。
+    ring_count: 16                    # 独立启动默认物理线数；部署前按实机结果修改。
+    time_source: timestamp            # 逐点时间来源；timestamp 表示读取同名输入字段。
+    time_mode: absolute               # absolute 将绝对时间归一为帧内相对时间。
+    time_unit: second                 # 输入时间单位；second 表示秒。
+    time_order_policy: validate       # validate 校验时间单调性；ignore 跳过校验。
+    velodyne_layout: true             # true 使用兼容 Velodyne/PCL 的字段偏移和对齐。
+    pool_size: 1                      # 预分配输出消息数量，合法范围 1~64。
+    max_scan_period: 1.0              # 允许的最大单帧时间跨度，单位 s。

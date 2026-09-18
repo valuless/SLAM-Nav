@@ -1,0 +1,67 @@
+# 点云转换与 FAST-LIO 的整机部署参数。
+# 两个节点共用此文件，但只读取与自身节点名匹配的 ros__parameters。
+rs_converter:                         # 点云格式转换节点名，必须与节点实际名称一致。
+  ros__parameters:                    # rs_converter 的 ROS 2 参数入口。
+    input_topic: /rslidar_points      # RoboSense 驱动发布的原始 PointCloud2 话题。
+    output_topic: /velodyne_points    # 转换后供 FAST-LIO 订阅的 PointCloud2 话题。
+    output_type: XYZIRT               # 输出字段：坐标、强度、ring 和逐点时间。
+    output_frame_id: ""               # 仅改 frame_id；空值沿用输入且不执行 TF 变换。
+    ring_source: field                # ring 来源；field 表示读取输入点云的 ring 字段。
+    ring_count: 0                     # 物理线数；先用 ring_probe.py 实测，0 会阻止整机启动。
+    time_source: timestamp            # 逐点时间来源；timestamp 表示读取同名输入字段。
+    time_mode: absolute               # absolute 表示字段为绝对时间，转换时归一为帧内相对时间。
+    time_unit: second                 # 输入时间单位；second 表示秒。
+    time_order_policy: validate       # validate 检查逐点时间单调性；ignore 表示跳过检查。
+    velodyne_layout: true             # true 使用兼容 Velodyne/PCL 的字段偏移和对齐。
+    pool_size: 1                      # 预分配输出消息数量，范围 1~64；不足时临时分配。
+    max_scan_period: 1.0              # 允许的最大单帧时间跨度，单位 s。
+
+laser_mapping:                        # FAST-LIO 节点名，必须与节点实际名称一致。
+  ros__parameters:                    # laser_mapping 的 ROS 2 参数入口。
+    feature_extract_enable: false     # false 直接使用原始点；true 启用传统特征提取。
+    point_filter_num: 4               # 每隔多少个输入点保留一个，越大降采样越强。
+    max_iteration: 3                  # 每帧状态估计的最大迭代次数。
+    filter_size_surf: 0.8             # 当前帧平面点体素滤波边长，单位 m。
+    filter_size_map: 0.8              # 局部地图体素滤波边长，单位 m。
+    cube_side_length: 1000.0          # FAST-LIO 局部地图立方体边长，单位 m。
+    runtime_pos_log_enable: false     # true 将运行时位姿写入日志，会产生磁盘 I/O。
+    map_file_path: "./changqu.pcd"    # PCD 地图文件路径；仅相关保存/加载功能启用时使用。
+
+    common:                            # FAST-LIO 传感器输入与时间同步参数组。
+      lid_topic: /velodyne_points     # 点云输入话题，必须等于转换器 output_topic。
+      imu_topic: /rslidar_imu_data    # RoboSense 驱动发布的 IMU 输入话题。
+      time_sync_en: false             # true 启用软件时间同步；有硬件同步时保持 false。
+      time_offset_lidar_to_imu: 0.0   # 雷达时间减 IMU 时间的已标定偏移，单位 s。
+
+    preprocess:                        # FAST-LIO 点云预处理参数组。
+      lidar_type: 2                   # 点云类型：1=Livox，2=Velodyne，3=Ouster。
+      scan_line: 0                    # 雷达线数；必须等于 ring_count，0 会阻止整机启动。
+      scan_rate: 5                    # 雷达扫描频率，单位 Hz。
+      timestamp_unit: 0               # 逐点时间单位：0=秒，1=毫秒，2=微秒，3=纳秒。
+      blind: 2.0                      # 丢弃距离雷达小于该值的点，单位 m。
+
+    mapping:                           # 状态估计、建图范围和雷达-IMU 外参参数组。
+      acc_cov: 0.1                    # IMU 加速度测量噪声协方差。
+      gyr_cov: 0.1                    # IMU 角速度测量噪声协方差。
+      b_acc_cov: 0.0001               # 加速度计零偏随机游走协方差。
+      b_gyr_cov: 0.0001               # 陀螺仪零偏随机游走协方差。
+      fov_degree: 360.0               # 雷达水平视场角，单位 degree。
+      det_range: 100.0                # 局部地图有效探测距离，单位 m。
+      extrinsic_est_en: false         # true 在线估计外参；已有标定结果时保持 false。
+      # 雷达到 IMU 的 3x3 旋转矩阵，按行展开。
+      extrinsic_R: [0.98786807, 0.00222948, 0.15527955,
+                    0.00093937, -0.99996444, 0.00838124,
+                    0.15529272, -0.00813369, -0.98783503]
+      extrinsic_T: [-0.00331252, 0.00436961, -0.00503621] # 雷达到 IMU 的平移 [x,y,z]，单位 m。
+
+    publish:                           # FAST-LIO 输出开关参数组。
+      path_en: true                   # true 发布累计运动路径。
+      map_en: false                   # true 发布局部/全局地图点云，带宽和 CPU 开销较大。
+      scan_publish_en: true           # true 发布世界坐标系下的配准点云。
+      dense_publish_en: true          # true 发布较稠密点云；false 发布降采样点云。
+      scan_bodyframe_pub_en: true     # true 发布机体坐标系下的当前帧点云。
+      publish_odom_tf: true           # true 发布 odom -> base_link TF。
+
+    pcd_save:                          # 点云地图落盘参数组。
+      pcd_save_en: false              # true 将累计点云保存为 PCD；长期运行可能占满磁盘。
+      interval: -1                    # 每个 PCD 包含的帧数；-1 表示所有帧写入一个文件。

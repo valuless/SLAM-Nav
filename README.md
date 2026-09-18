@@ -103,10 +103,11 @@ This is the main integration package for SLAM-Nav.
 
 It contains:
 
-- `launch/system.launch.py`: the system-level launch entry point.
-- `launch/rslidar_scan.launch.py`: converts the registered FAST-LIO cloud into `/scan`.
-- `config/nav2_params.yaml`: Nav2 controller, costmap, planner, and behavior-tree parameters.
-- `config/amcl_params.yaml`: AMCL localization parameters.
+- `launch/system.launch.py`: the system-level entry point, including conversion
+  of the registered FAST-LIO cloud into `/scan`.
+- `config/laserscan.yaml`: point-cloud to LaserScan projection parameters.
+- `config/nav2_params.yaml`: Nav2 controller, costmap, planner, behavior-tree,
+  and AMCL localization parameters.
 
 Start here when changing topic names, map paths, velocity limits, costmap dimensions, obstacle parameters, or controller behavior.
 
@@ -308,7 +309,8 @@ These commands are entry points. Successful operation on a real robot still depe
 For a first pass through the project:
 
 1. Read `robot_navigation_bringup/launch/system.launch.py` to see which modules are started.
-2. Read `robot_navigation_bringup/launch/rslidar_scan.launch.py` to understand how `/scan` is generated.
+2. Read `robot_navigation_bringup/launch/system.launch.py` and
+   `config/laserscan.yaml` to understand how `/scan` is generated.
 3. Inspect `robot_navigation_bringup/config/nav2_params.yaml` for Nav2 controller and costmap settings.
 4. Inspect `dobot_atom_bridge/launch/atom_bridge.launch.py` to follow `/cmd_vel` into the robot.
 5. Check either `rslidar_sdk` or `livox_ros_driver2` for the selected sensor.
@@ -365,7 +367,9 @@ Inspect:
 - The lifecycle state of Nav2 nodes.
 - Planner, controller, and behavior-tree logs.
 
-Some launch defaults are deployment-specific and may need to be overridden after moving the workspace to another machine.
+In localization mode, pass the map explicitly with
+`map:=/absolute/path/to/map.yaml`. The default Dobot RPC address remains
+deployment-specific and must match the robot network.
 
 ### The robot does not move
 
@@ -384,12 +388,12 @@ Verify the RPC address, FSM state, command remapping, velocity limits, and emerg
 | Requirement | Primary location |
 |---|---|
 | Change system startup order | `robot_navigation_bringup/launch/system.launch.py` |
-| Tune point-cloud to LaserScan conversion | `robot_navigation_bringup/launch/rslidar_scan.launch.py` |
+| Tune point-cloud to LaserScan conversion | `robot_navigation_bringup/config/laserscan.yaml` |
 | Tune Nav2 controllers and limits | `robot_navigation_bringup/config/nav2_params.yaml` |
-| Tune AMCL | `robot_navigation_bringup/config/amcl_params.yaml` |
+| Tune AMCL | `robot_navigation_bringup/config/nav2_params.yaml` |
 | Change Dobot Atom IP and port | `dobot_atom_bridge/launch/atom_bridge.launch.py` |
-| Change RoboSense point layout | `rs_to_velodyne_ros2/launch/convert.launch.py` |
-| Select or tune FAST-LIO sensor settings | `FAST_LIO/config/` |
+| Change RoboSense point layout | `robot_navigation_bringup/config/lidar_pipeline.yaml` |
+| Select or tune FAST-LIO sensor settings | `robot_navigation_bringup/config/lidar_pipeline.yaml` |
 | Generate a 2D occupancy map | `pcd2pgm/config/config_pcd2pgm.yaml` |
 
 ## Development Notes

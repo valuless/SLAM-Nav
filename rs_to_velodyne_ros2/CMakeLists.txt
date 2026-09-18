@@ -19,8 +19,11 @@ ament_target_dependencies(rs_to_velodyne_ros2 rclcpp sensor_msgs)
 install(TARGETS rs_to_velodyne_ros2
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY
+  launch
+  config
+  DESTINATION share/${PROJECT_NAME}
+  PATTERN "__pycache__" EXCLUDE)
 
 install(PROGRAMS tools/ring_probe.py
   DESTINATION lib/${PROJECT_NAME})

@@ -199,11 +199,12 @@ if(rclcpp_FOUND)
     DESTINATION lib/${PROJECT_NAME})
 
   install(DIRECTORY
+    config
     launch
     rviz
-    DESTINATION share/${PROJECT_NAME})
+    DESTINATION share/${PROJECT_NAME}
+    PATTERN "__pycache__" EXCLUDE)
 
   ament_package()
 
 endif(rclcpp_FOUND)
-

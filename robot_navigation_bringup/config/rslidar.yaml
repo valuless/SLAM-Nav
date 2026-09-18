@@ -1,0 +1,34 @@
+# RoboSense SDK 原生配置，格式不是 ROS 2 参数 YAML。
+# system.launch.py 通过 config_path 将本文件交给 rslidar_sdk_node。
+common:                                # SDK 全局数据源和输出开关。
+  msg_source: 1                       # 数据源：0=禁用，1=在线雷达，2=ROS 包，3=PCAP。
+  send_packet_ros: false              # true 将原始 UDP 数据包发布为 ROS 消息。
+  send_point_cloud_ros: true          # true 解码并发布 PointCloud2 点云。
+
+lidar:                                 # 雷达实例列表；当前系统只配置一台雷达。
+  - driver:                            # 当前雷达的 SDK 解码与网络参数。
+      lidar_type: RSAIRY              # 设备型号；更换型号时须重新确认端口和线数。
+      msop_port: 6699                 # 点云测量数据 MSOP 的本机 UDP 监听端口。
+      difop_port: 7788                # 设备配置数据 DIFOP 的本机 UDP 监听端口。
+      imu_port: 6688                  # IMU 数据 UDP 监听端口；0 表示不接收 IMU。
+      user_layer_bytes: 0             # 每包需跳过的用户自定义头部字节数。
+      tail_layer_bytes: 0             # 每包需跳过的用户自定义尾部字节数。
+      min_distance: 2                # 保留点的最小距离，单位 m。
+      max_distance: 200              # 保留点的最大距离，单位 m。
+      use_lidar_clock: false          # false 使用主机时间；true 使用已同步的雷达时钟。
+      dense_points: false             # true 丢弃无效点；false 保留 NaN 以维持组织结构。
+      ts_first_point: true            # true 用首点时间作为帧时间戳；需匹配 absolute 时间模式。
+      start_angle: 0                 # 单帧点云起始水平角，单位 degree。
+      end_angle: 360                 # 单帧点云结束水平角，单位 degree。
+      use_point_xyzirt: true         # true 输出包含 x/y/z/intensity/ring/timestamp 的点型。
+      pcap_repeat: true              # PCAP 模式下播放结束后是否循环。
+      pcap_rate: 1.0                 # PCAP 回放倍率；1.0 表示原速。
+      pcap_path: /home/robosense/lidar.pcap # PCAP 文件路径，仅 msg_source=3 时使用。
+
+    ros:                               # 当前雷达的 ROS 话题、坐标系与队列参数。
+      ros_frame_id: rslidar           # 点云和 IMU 的实际 frame_id；不会执行 TF 变换。
+      ros_recv_packet_topic: /rslidar_packets # msg_source=2 时订阅的原始包话题。
+      ros_send_packet_topic: /rslidar_packets # send_packet_ros=true 时发布的原始包话题。
+      ros_send_imu_data_topic: /rslidar_imu_data # 解码后 IMU 消息的发布话题。
+      ros_send_point_cloud_topic: /rslidar_points # 解码后 PointCloud2 的发布话题。
+      ros_queue_length: 100           # ROS 发布/订阅 QoS 历史队列深度。

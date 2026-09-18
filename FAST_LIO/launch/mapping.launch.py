@@ -8,6 +8,7 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition
 
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -47,7 +48,8 @@ def generate_launch_description():
         package='fast_lio',
         executable='fastlio_mapping',
         parameters=[PathJoinSubstitution([config_path, config_file]),
-                    {'use_sim_time': False}],
+                    {'use_sim_time': ParameterValue(
+                        use_sim_time, value_type=bool)}],
         output='screen',
         remappings=[
             ('/Odometry', '/odom')  # 添加话题重映射
@@ -57,6 +59,8 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         arguments=['-d', rviz_cfg],
+        parameters=[{'use_sim_time': ParameterValue(
+            use_sim_time, value_type=bool)}],
         condition=IfCondition(rviz_use)
     )
 

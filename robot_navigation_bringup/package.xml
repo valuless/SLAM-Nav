@@ -4,17 +4,23 @@
   <name>robot_navigation_bringup</name>
   <version>0.0.1</version>
   <description>Navigation launch files for pointcloud to laserscan and Nav2</description>
-  <maintainer email="aluless@163.com">zwh</maintainer>
+  <maintainer email="valuless@163.com">valuless</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <!-- 运行时依赖 -->
   <exec_depend>pointcloud_to_laserscan</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>dobot_atom_bridge</exec_depend>
+  <exec_depend>fast_lio</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
+  <exec_depend>rslidar_sdk</exec_depend>
+  <exec_depend>rs_to_velodyne_ros2</exec_depend>
   <exec_depend>rviz2</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>

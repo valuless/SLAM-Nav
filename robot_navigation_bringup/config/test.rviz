@@ -1,3 +1,5 @@
+# robot_navigation_bringup 的 RViz 配置（保留项目原有文件名）。
+# system.launch.py 会关闭各子包自带的 RViz，避免重复启动。
 Panels:
   - Class: rviz_common/Displays
     Help Height: 78
@@ -92,7 +94,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /Odometry
+        Value: /odom
       Value: true
     - Alpha: 1
       Buffer Length: 1
